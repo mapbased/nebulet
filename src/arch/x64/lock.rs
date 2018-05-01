@@ -1,10 +1,13 @@
 use core::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use core::cell::UnsafeCell;
 use core::ops::{Deref, DerefMut, Drop};
+use core::any::{Any, TypeId};
+use core::mem;
 
 use arch::cpu;
 use arch::interrupt;
 
+#[derive(Debug)]
 pub struct Spinlock<T: ?Sized> {
     lock: AtomicBool,
     data: UnsafeCell<T>,
@@ -36,6 +39,7 @@ impl<T> Spinlock<T> {
 
     pub fn lock(&self) -> SpinGuard<T> {
         self.obtain_lock();
+
         SpinGuard {
             lock: &self.lock,
             data: unsafe { &mut *self.data.get() },

@@ -3,15 +3,15 @@
 
 use os_bootinfo::BootInfo;
 use x86_64::structures::paging::{PageTable, PageTableFlags, PhysFrame};
-use spin::Mutex;
 
+use arch::lock::PreemptLock;
 use self::bump::BumpAllocator;
 use self::cache::FrameCache;
 
 mod bump;
 mod cache;
 
-pub static FRAME_ALLOCATOR: Mutex<Option<FrameCache<BumpAllocator>>> = Mutex::new(None);
+pub static FRAME_ALLOCATOR: PreemptLock<Option<FrameCache<BumpAllocator>>> = PreemptLock::new(None);
 
 pub fn init(boot_info: &'static mut BootInfo) {
     *FRAME_ALLOCATOR.lock() = Some(FrameCache::new(BumpAllocator::new(&boot_info.memory_map)));
